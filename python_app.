@@ -1,1 +1,233 @@
+import streamlit as st
+import sqlite3
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+import joblib
+import numpy as np
+import matplotlib.pyplot as plt  # Importar matplotlib para gráficos
 
+
+DB_NAME = 'farmtech_data.db'
+
+
+def init_db():
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS leituras_sensores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            umidade REAL NOT NULL,
+            temperatura REAL NOT NULL,
+            nivel_n INTEGER NOT NULL,
+            nivel_p INTEGER NOT NULL,
+            nivel_k INTEGER NOT NULL,
+            area_id INTEGER
+        )
+    """)
+
+    # Tabela: previsoes_ml
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS previsoes_ml (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp_previsao DATETIME DEFAULT CURRENT_TIMESTAMP,
+            leitura_id INTEGER NOT NULL,
+            necessidade_irrigacao_prevista INTEGER NOT NULL,
+            confianca_modelo REAL,
+            tipo_modelo_usado TEXT,
+            FOREIGN KEY (leitura_id) REFERENCES leituras_sensores(id)
+        )
+    """)
+
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS acoes_irrigacao (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
+            timestamp_fim DATETIME,
+            duracao_segundos INTEGER,
+            tipo_acao TEXT NOT NULL,
+            leitura_id_referencia INTEGER,
+            FOREIGN KEY (leitura_id_referencia) REFERENCES leituras_sensores(id)
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+
+def generate_and_insert_simulated_data(num_records=100):
+    """Gera dados simulados e os insere na tabela leituras_sensores."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+
+    cursor.execute("SELECT COUNT(*) FROM leituras_sensores")
+    if cursor.fetchone()[0] > 0:
+        st.warning("Dados simulados já existem na tabela 'leituras_sensores'. Pulando a geração.")
+        conn.close()
+        return
+
+    data_to_insert = []
+    for _ in range(num_records):
+        umidade = np.random.uniform(20, 80)  # Umidade entre 20% e 80%
+        temperatura = np.random.uniform(18, 35)  # Temperatura entre 18C e 35C
+        nivel_n = np.random.randint(0, 101)  # NPK entre 0 e 100
+        nivel_p = np.random.randint(0, 101)
+        nivel_k = np.random.randint(0, 101)
+
+        data_to_insert.append((umidade, temperatura, nivel_n, nivel_p, nivel_k))
+
+
+    cursor.executemany(
+        "INSERT INTO leituras_sensores (umidade, temperatura, nivel_n, nivel_p, nivel_k) VALUES (?, ?, ?, ?, ?)",
+        data_to_insert)
+
+    conn.commit()
+    conn.close()
+    st.success(f"{num_records} registros simulados inseridos na tabela 'leituras_sensores'.")
+
+
+
+def load_data():
+    conn = sqlite3.connect(DB_NAME)
+    df = pd.read_sql_query("SELECT * FROM leituras_sensores ORDER BY timestamp ASC", conn)
+    conn.close()
+
+
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+    return df
+
+
+
+def train_model(df):
+    if df.empty:
+        st.error("Não há dados para treinar o modelo. Gere dados simulados primeiro.")
+        return None
+
+
+    df['necessidade_irrigacao'] = df.apply(
+        lambda row: 1 if row['umidade'] < 40 and row['nivel_n'] < 50 else 0, axis=1
+    )
+
+    X = df[['umidade', 'temperatura', 'nivel_n', 'nivel_p', 'nivel_k']]
+    y = df['necessidade_irrigacao']
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    model = LogisticRegression(random_state=42, max_iter=1000)  # Aumentar max_iter para evitar warnings de convergência
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    st.write(f"Acurácia do Modelo: {accuracy:.2f}")
+
+    # Salvar o modelo
+    joblib.dump(model, 'irrigation_model.pkl')
+    st.success("Modelo de irrigação treinado e salvo como 'irrigation_model.pkl'.")
+    return model
+
+
+
+st.set_page_config(layout="wide")
+st.title("🌱 FarmTech Solutions - Dashboard de Irrigação")
+
+
+init_db()
+
+# Se ainda não houver dados no banco, gera e insere alguns
+conn_check = sqlite3.connect(DB_NAME)
+cursor_check = conn_check.cursor()
+cursor_check.execute("SELECT COUNT(*) FROM leituras_sensores")
+if cursor_check.fetchone()[0] == 0:
+    st.info("Gerando dados simulados para treinamento do modelo...")
+    generate_and_insert_simulated_data(num_records=200)  # Gerar 200 registros
+conn_check.close()
+
+data = load_data()
+
+if not data.empty:
+    st.header("Dados Históricos dos Sensores")
+    st.dataframe(data.tail())  # Mostra as últimas 5 leituras
+
+    # Gráficos com Matplotlib para melhor controle
+    st.subheader("Gráficos de Tendência")
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(data['timestamp'], data['umidade'], label='Umidade (%)')
+    ax.plot(data['timestamp'], data['temperatura'], label='Temperatura (°C)')
+    ax.set_xlabel("Data/Hora")
+    ax.set_ylabel("Valor")
+    ax.set_title("Umidade e Temperatura ao Longo do Tempo")
+    ax.legend()
+    st.pyplot(fig)
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(data['timestamp'], data['nivel_n'], label='Nível N')
+    ax.plot(data['timestamp'], data['nivel_p'], label='Nível P')
+    ax.plot(data['timestamp'], data['nivel_k'], label='Nível K')
+    ax.set_xlabel("Data/Hora")
+    ax.set_ylabel("Nível de Nutriente")
+    ax.set_title("Níveis de NPK ao Longo do Tempo")
+    ax.legend()
+    st.pyplot(fig)
+
+    st.header("Treinamento do Modelo de Machine Learning")
+    if st.button("Treinar Modelo"):
+        trained_model = train_model(data.copy())  # Usar uma cópia para não alterar o DF original
+
+    st.header("Previsão de Irrigação")
+
+    try:
+        model = joblib.load('irrigation_model.pkl')
+        st.success("Modelo de irrigação carregado.")
+
+        # Interface para predição
+        st.subheader("Simular Nova Leitura para Previsão")
+        col1, col2, col3, col4, col5 = st.columns(5)
+        sim_umidade = col1.slider("Umidade (%)", 0, 100, 50)
+        sim_temp = col2.slider("Temperatura (°C)", 0, 50, 25)
+        sim_n = col3.slider("Nível N", 0, 100, 50)
+        sim_p = col4.slider("Nível P", 0, 100, 50)
+        sim_k = col5.slider("Nível K", 0, 100, 50)
+
+        if st.button("Obter Previsão"):
+            new_data = pd.DataFrame([[sim_umidade, sim_temp, sim_n, sim_p, sim_k]],
+                                    columns=['umidade', 'temperatura', 'nivel_n', 'nivel_p', 'nivel_k'])
+            prediction = model.predict(new_data)[0]
+            prediction_proba = model.predict_proba(new_data)[0][1]  # Probabilidade de ser 1
+
+            if prediction == 1:
+                st.error(f"**Previsão: Necessário Irrigar!** (Confiança: {prediction_proba:.2f})")
+            else:
+                st.success(f"**Previsão: Irrigação Não Necessária.** (Confiança: {1 - prediction_proba:.2f})")
+
+
+            conn = sqlite3.connect(DB_NAME)
+            cursor = conn.cursor()
+
+
+            cursor.execute("SELECT id FROM leituras_sensores ORDER BY id DESC LIMIT 1")
+            result = cursor.fetchone()  # Chame fetchone() apenas uma vez
+
+            if result:
+                last_leitura_id = result[0]
+            else:
+                last_leitura_id = 1
+
+
+            cursor.execute(
+                "INSERT INTO previsoes_ml (leitura_id, necessidade_irrigacao_prevista, confianca_modelo, tipo_modelo_usado) VALUES (?, ?, ?, ?)",
+                (last_leitura_id, int(prediction), prediction_proba, 'LogisticRegression'))
+            conn.commit()
+            conn.close()
+
+
+    except FileNotFoundError:
+        st.warning("Modelo de Machine Learning ainda não treinado. Clique em 'Treinar Modelo' primeiro.")
+else:
+    st.info("Nenhum dado de sensor disponível. Gere dados simulados para começar.")
