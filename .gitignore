@@ -1,0 +1,51 @@
+# Ignore arquivos do Arduino
+*.ino.*
+*.bak
+*.d
+*.dep
+*.elf
+*.hex
+*.eep
+*.lss
+*.map
+*.bin
+
+# Diretórios do Arduino
+build/
+libraries/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.ipynb_checkpoints
+.env
+.venv
+env/
+venv/
+ENV/
+.Python
+
+# Jupyter notebooks temporários
+*.nbconvert.ipynb
+
+# VSCode settings
+.vscode/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dados temporários
+*.log
+*.sqlite3
+*.db
+
+# Streamlit cache
+.streamlit/
+
+# Arquivos do Wokwi
+wokwi-diagram.json
