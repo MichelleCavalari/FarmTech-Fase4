@@ -1,0 +1,120 @@
+#include <Wire.h>              // Biblioteca para comunicação I2C
+#include <LiquidCrystal_I2C.h> // Biblioteca para o display LCD I2C
+#include "DHT.h"               // Biblioteca para o sensor DHT
+
+// --- Configuração dos Pinos I2C ---
+
+#define I2C_SDA_PIN 18 // Pino SDA do ESP32 para o LCD 
+#define I2C_SCL_PIN 19 // Pino SCL do ESP32 para o LCD 
+
+// --- Configuração do LCD I2C ---
+// ENDEREÇO I2C DO LCD: O MAIS COMUM É 0x27 OU 0x3F.
+// SE 0x27 NÃO FUNCIONAR, TENTE 0x3F.
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Endereço, colunas, linhas
+
+// --- Configuração do Sensor DHT22 ---
+#define DHTPIN 15
+#define DHTTYPE DHT22 // Define o tipo de sensor (DHT11 ou DHT22)
+DHT dht(DHTPIN, DHTTYPE);
+
+// --- Pinos dos Potenciômetros -
+/
+const int pinN = 34; // Nutriente N
+const int pinP = 35; // Nutriente P
+const int pinK = 33; // Nutriente K
+
+// --- Variáveis Globais para os Valores Simulados de N, P, K ---
+// Otimização: Usando 'uint8_t' para os níveis de nutrientes (N, P, K).
+uint8_t simulatedN = 0; // Começa em 0
+uint8_t simulatedP = 0; // Começa em 0
+uint8_t simulatedK = 0; // Começa em 0
+
+// Variável para controlar a atualização dos valores simulados ao longo do tempo
+unsigned long lastUpdateTime = 0;
+const long updateInterval = 5000; // Atualiza os valores simulados a cada 5 segundos
+
+void setup() {
+  Serial.begin(115200); // Inicializa a comunicação serial
+
+  dht.begin(); // Inicia o sensor DHT
+
+  // --- CONFIGURAÇÃO DOS PINOS I2C
+ 
+  Wire.setPins(I2C_SDA_PIN, I2C_SCL_PIN);
+
+  // --- Inicialização do LCD ---
+  lcd.init(); 
+  lcd.begin(16, 2); 
+
+  lcd.backlight(); 
+  lcd.clear(); 
+
+  // Mensagem inicial para verificar se o LCD está funcionando
+  lcd.setCursor(0, 0);
+  lcd.print("FarmTech IoT");
+  lcd.setCursor(0, 1);
+  lcd.print("Iniciando...");
+  delay(2000);
+  lcd.clear();
+
+  // pinMode para pinos analógicos não é estritamente necessário para analogRead,
+  // e menos ainda para valores simulados.
+  // pinMode(pinN, INPUT);
+  // pinMode(pinP, INPUT);
+  // pinMode(pinK, INPUT);
+}
+
+void loop() {
+  // --- Simula mudanças para N, P, K ao longo do tempo ---
+  if (millis() - lastUpdateTime >= updateInterval) {
+    lastUpdateTime = millis();
+
+    simulatedN = (simulatedN + 50) % 101;
+    simulatedP = (simulatedP + 30) % 101;
+    simulatedK = (simulatedK + 20) % 101;
+  }
+
+  // --- Leitura de Sensores (DHT) ---
+  float temperatura = dht.readTemperature();
+  float umidade = dht.readHumidity();
+
+  if (isnan(umidade) || isnan(temperatura)) {
+    Serial.println("Erro ao ler do sensor DHT! Usando valores padrao.");
+    umidade = 0.0;
+    temperatura = 0.0;
+  }
+
+  // --- Usa os valores simulados para N, P, K ---
+  uint8_t nivelN = simulatedN;
+  uint8_t nivelP = simulatedP;
+  uint8_t nivelK = simulatedK;
+
+  // --- Saída para o Serial Monitor / Serial Plotter ---
+  Serial.print("Umidade: ");
+  Serial.print(umidade);
+  Serial.print(" | N: ");
+  Serial.print(nivelN);
+  Serial.print(" | P: ");
+  Serial.print(nivelP);
+  Serial.print(" | K: ");
+  Serial.print(nivelK);
+  Serial.print(" | Temp: ");
+  Serial.println(temperatura);
+
+  // --- Exibição no LCD ---
+  lcd.clear();
+
+  lcd.setCursor(0, 0);
+  lcd.print("U:");
+  lcd.print((int)umidade);
+  lcd.print("% N:");
+  lcd.print(nivelN);
+
+  lcd.setCursor(0, 1);
+  lcd.print("P:");
+  lcd.print(nivelP);
+  lcd.print(" K:");
+  lcd.print(nivelK);
+
+  delay(2000);
+}
