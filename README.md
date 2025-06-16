@@ -189,7 +189,7 @@ Acesse o dashboard no navegador: [http://localhost:8501](http://localhost:8501)
 
 Assista ao vídeo demonstrando o sistema FarmTech Solutions:
 
-📺 [LINK_DO_VIDEO_YOUTUBE](https://www.youtube.com/watch?v=[ID_DO_SEU_VIDEO])
+📺 (https://youtu.be/Cm9GU2mVAa0)
 
 ---
 
