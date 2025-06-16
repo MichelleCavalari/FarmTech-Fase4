@@ -1,5 +1,20 @@
 # 🌱 FarmTech Solutions - Sistema Inteligente de Irrigação (Fase 4)
 
+
+## 👨‍🎓 Integrantes:
+
+Michelle Cavalari
+
+Gustavo Zanetti Martins
+
+## 👩‍🏫 Professores:
+## Tutor(a)
+Leoruiz197
+
+## Coordenador(a)
+André Godoy
+
+
 ## Sumário
 
 Este repositório contém o desenvolvimento da **Fase 4** do projeto **FarmTech Solutions**, focado na criação de um sistema inteligente de irrigação. Esta fase integra o monitoramento de sensores (umidade, temperatura, NPK) com um dashboard interativo utilizando **Streamlit** e um modelo de **Machine Learning** para previsão de necessidade de irrigação, tudo suportado por um banco de dados **SQLite**. O firmware para o **ESP32** é simulado no **Wokwi** para demonstrar a coleta de dados e a interface LCD.
@@ -188,6 +203,3 @@ Assista ao vídeo demonstrando o sistema FarmTech Solutions:
 
 ---
 
-## 👨‍💻 Desenvolvido por
-
-[SEU_NOME]
