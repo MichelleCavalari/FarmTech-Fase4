@@ -23,13 +23,9 @@ FarmTech-Fase4/
 ├── requirements.txt
 │
 ├── esp32_firmware/
-│   └── farmtech_esp32_wokwi.ino
 │
 └── python_app/
-    ├── main.py
-    ├── requirements.txt
-    ├── farmtech_data.db
-    └── irrigation_model.pkl
+  
 ```
 
 ---
