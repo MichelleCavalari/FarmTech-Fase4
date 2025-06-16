@@ -58,20 +58,20 @@ Componentes simulados:
 - `LCD I2C SDA`: GPIO 18  
 - `LCD I2C SCL`: GPIO 19  
 
-📸 **[COLE AQUI SUA IMAGEM DO CIRCUITO WOKWI]**
+**![simlador LCD](https://github.com/user-attachments/assets/76a8e317-bb07-4616-af54-5cae02a81c77)**
 
 ---
 
 ### 3.3. Saída do Serial Monitor e Plotter (Wokwi)
 
-📸 **[COLE AQUI SUA IMAGEM DO SERIAL MONITOR]**  
-📸 **[COLE AQUI SUA IMAGEM DO SERIAL PLOTTER]**
+**![simulador lcd 2](https://github.com/user-attachments/assets/30df5579-fb3e-487c-a856-f4f186a6ebee)**  
+
 
 ---
 
 ### 3.4. Exibição no LCD (Wokwi)
 
-📸 **[COLE AQUI SUA IMAGEM DO LCD WOKWI]**
+**![image](https://github.com/user-attachments/assets/718fe4d6-0c84-4bec-9eaa-f06c1ceb43b0)**
 
 ---
 
@@ -131,32 +131,18 @@ CREATE TABLE acoes_irrigacao (
 
 ### 5.2. Capturas de Tela
 
-📸 **[COLE AQUI IMAGEM DO DASHBOARD - VISÃO GERAL]**  
-📸 **[COLE AQUI IMAGEM DOS GRÁFICOS]**  
-📸 **[COLE AQUI IMAGEM DA PREVISÃO COM SLIDERS]**
+**![image](https://github.com/user-attachments/assets/92749d93-7644-4d73-9c1a-977230e6b540)
+**  
+**![image](https://github.com/user-attachments/assets/690ece42-e3f9-4ed7-b7d2-f992b966a337)
+**  
+![image](https://github.com/user-attachments/assets/c1aca5d1-3af0-4ac1-851f-310751ff973b)
+**
+**![image](https://github.com/user-attachments/assets/0b7a4104-9d82-4d80-8ad6-ce0c6e6cc560)**
+
 
 ---
 
 ## 6. Como Rodar o Projeto
-
-### Clone o Repositório
-
-```bash
-git clone [LINK_DO_SEU_REPOSITORIO]
-cd FarmTech-Fase4
-```
-
-### Crie e Ative o Ambiente Virtual
-
-```bash
-# Windows
-python -m venv .venv
-.\.venv\Scriptsctivate
-
-# macOS/Linux
-python3 -m venv .venv
-source .venv/bin/activate
-```
 
 ### Acesse a pasta do app Python
 
@@ -198,10 +184,14 @@ Assista ao vídeo demonstrando o sistema FarmTech Solutions:
 
 ## 8. Próximos Passos e Desafios Futuros
 
-- 🔌 Integração com ESP32 físico
-- 🚰 Controle real de bomba de irrigação
-- 📊 Coleta de mais dados reais
-- 🤖 Teste de novos algoritmos de ML
+- 🔌 Integração com ESP32 físico  
+- 🚰 Controle real de bomba de irrigação  
+- 📊 Coleta de mais dados reais  
+- 🤖 Teste de novos algoritmos de ML  
 - 🖥️ Melhorias de UI/UX no dashboard
 
 ---
+
+## 👨‍💻 Desenvolvido por
+
+[SEU_NOME]
